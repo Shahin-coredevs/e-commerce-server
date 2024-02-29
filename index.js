@@ -1,6 +1,6 @@
+const mongoose = require('mongoose');
 const express = require('express');
 const formData = require("express-form-data");
-const { createServer } = require('http');
 const cors = require('cors');
 const router = require('./routes');
 const { connectToDatabase } = require('./utils/Database');
@@ -17,8 +17,21 @@ app.use(
 );
 
 // Database connection
+main().catch(err => console.log(err));
 
-connectToDatabase()
+async function main() {
+    try {
+        mongoose.set('strictPopulate', false);
+        await mongoose.connect('mongodb+srv://shahinalam:y89KSJmEgt0LnzUo@cluster0.cuy74ex.mongodb.net/e-commerce2');
+        console.log("=> Connected to DB");
+    } catch (error) {
+        console.log(error);
+    }
+
+    // `await mongoose.connect('mongodb://${process.env.DBUSER}:${process.env.DBPASS}@127.0.0.1:27017/test')`;
+}
+
+// connectToDatabase()
 
 // Router 
 app.use('/', router);

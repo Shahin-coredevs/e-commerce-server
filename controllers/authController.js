@@ -1,18 +1,20 @@
 const jwt = require('jsonwebtoken');
 const cookieParser = require("cookie-parser");
 const bcrypt = require('bcrypt');
-const { userCollection } = require('../utils/Database');
+const { hashedPassword } = require('../utils/bcript');
+const userSchema = require('../Schemas/userSchema');
+
 
 async function login(req, res) {
     const { email, password } = req.body;
     try {
-        const user = await userCollection.findOne({ email });
+        const user = await userSchema.findOne({ email });
         if (!user) return res.status(404).send("User Not Found");
 
         const passwordMatch = await bcrypt.compare(password, user.password);
         if (!passwordMatch) return res.status(401).send("User Unauthorised");
 
-        const token = jwt.sign({ email, id: user._id }, 'itsSecret');
+        const token = jwt.sign({ email, id: user._id }, process.env.token_Secret);
         res.cookie('token', token, {
             httpOnly: true,
             secure: true,
@@ -24,8 +26,7 @@ async function login(req, res) {
         return res.status(500).send("Server Error");
     }
 }
-
-async function logout(req, res) {
+const logout = async (req, res) => {
     try {
         res.clearCookie('token').send({ success: true });
     } catch (error) {
@@ -34,7 +35,7 @@ async function logout(req, res) {
     }
 }
 
-async function me(req, res) {
+const me = async (req, res) => {
     try {
         return res.status(200).send(req.user);
     } catch (error) {

@@ -1,16 +1,19 @@
 const jwt = require('jsonwebtoken');
-const { userCollection } = require('../utils/Database');
+const userSchema = require('../Schemas/userSchema');
 
-async function authMiddleware(req, res, next) {
+const authMiddleware = async (req, res, next) => {
     try {
         const token = req.headers.cookie.split('=')[1];
-        const decode = jwt.verify(token, 'itsnothing');
-        const user = await userCollection.findOne({ email: decode.email }, { projection: { password: 0 } });
+        const decode = jwt.verify(token, process.env.token_Secret);
+        const user = await userSchema.findOne({ email: decode.email }, { projection: { password: 0 } });
         req.user = user;
         return next();
-    } catch {
+    } catch (e) {
+        console.log(e);
         return res.status(401).send("User Unauthorised");
     }
 }
+
+
 
 module.exports = authMiddleware;

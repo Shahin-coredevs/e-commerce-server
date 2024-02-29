@@ -1,14 +1,41 @@
+
 const { ObjectId } = require("mongodb");
-const { cartCollection } = require("../utils/Database");
+const CartSchema = require("../Schemas/CartSchema");
 
-async function addToCart(req, res) {
-    const addAllowed = new Set(['email', 'name', 'category', 'photo', 'title', 'description', 'price', 'rating', 'stock', 'brand']);
+const addToCart = async (req, res) => {
     try {
-        const isValid = Object.keys(req.body).every((key) => addAllowed.has(key));
-        if (!isValid) return res.status(400).send({ reason: 'Bad Request' });
+        const productExists = await CartSchema.findOne({ product: req.body.product });
+        if (productExists) return res.status(409).send({ reason: 'Product already exists in your cart' });
+        const result = new CartSchema({ product: req.body.product, Buyer: req.user.id, Quantity: 1 });
+        await result.save()
+        return res.status(200).send(result)
+    }
+    catch (error) {
+        console.error(error.message);
+        return res.status(500).send("Server Error");
+    }
+}
 
-        const result = cartCollection.insertOne({ ...req.body })
-        res.status(200).send(result)
+const cartUpdate = async (req, res) => {
+    try {
+        const { id, Quantity } = req.body
+        const result = await CartSchema.findOneAndUpdate({ _id: id }, { $set: { Quantity: Quantity } }, { new: true });
+        await result.save()
+        return res.status(200).send(result)
+    }
+    catch (error) {
+        console.error(error.message);
+        return res.status(500).send("Server Error");
+    }
+}
+
+const cartProducts = async (req, res) => {
+    try {
+        const id = req.params.id
+        if (!id) return res.status(400).send({ reason: 'Bad Request' })
+        const result = await CartSchema.find({ Buyer: id }).populate({ path: 'product Buyer seller', select: '-role -createdAt -updatedAt -password -photo' })
+        return res.status(200).send(result)
+
     }
     catch (error) {
         console.error(error);
@@ -16,13 +43,12 @@ async function addToCart(req, res) {
     }
 }
 
-async function cartProducts(req, res) {
-    try {
-        const email = req.params.email
-        if (!email) return res.status(400).send({ reason: 'Bad Request' })
-        const result = cartCollection.find({ email }).toArray()
-        res.status(200).send(result)
 
+const deleteFromCart = async (req, res) => {
+    try {
+        const id = req.body
+        const result = await CartSchema.findOneAndDelete({ _id: new ObjectId(id) })
+        return res.status(200).send(result)
     }
     catch (error) {
         console.error(error);
@@ -30,11 +56,4 @@ async function cartProducts(req, res) {
     }
 }
 
-async function deleteFromCart(req, res) {
-    const id = req.params.id;
-    if (!id) return res.status(400).send({ reason: 'Bad Request' })
-    const result = cartCollection.deleteOne({ _id: new ObjectId(id) })
-    res.status(200).send('Sucessfully deleted from cart')
-}
-
-module.exports = { addToCart, cartProducts, deleteFromCart }
+module.exports = { addToCart, cartProducts, deleteFromCart, cartUpdate }
