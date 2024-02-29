@@ -1,9 +1,6 @@
-
-const { userCollection } = require('../utils/Database');
-
-const sellerChecker = async (req, res, next) => {
+const userChecker = async (req, res, next) => {
     try {
-        if (req.user.role === "seller") {
+        if (req.user.role === "user") {
             return next()
         }
         else {
@@ -18,4 +15,4 @@ const sellerChecker = async (req, res, next) => {
 
 }
 
-module.exports = sellerChecker;
+module.exports = userChecker;

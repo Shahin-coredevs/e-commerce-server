@@ -16,7 +16,7 @@ const orderconfirm = async (req, res) => {
 }
 
 const showOrder = async (req, res) => {
-    const order = await orderSchema.find().populate({ path: 'product Buyer', select: '-password -createdAt -updatedAt -role -photo'}).populate({ path: 'product.product' });
+    const order = await orderSchema.find().populate({ path: 'product Buyer', select: '-password -createdAt -updatedAt -role -photo'});
     return res.status(200).send(order)
 
 }
