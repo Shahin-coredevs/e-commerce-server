@@ -6,7 +6,7 @@ const addToCart = async (req, res) => {
     try {
         const productExists = await CartSchema.findOne({ product: req.body.product });
         if (productExists) return res.status(409).send({ reason: 'Product already exists in your cart' });
-        const result = new CartSchema({ product: req.body.product, Buyer: req.user.id, Quantity: 1 });
+        const result = new CartSchema({ product: req.body.product, seller:req.body.seller, Buyer: req.user.id, Quantity: 1 });
         await result.save()
         return res.status(200).send(result)
     }

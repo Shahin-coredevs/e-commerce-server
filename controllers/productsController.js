@@ -24,19 +24,12 @@ const getProducts = async (req, res) => {
     const sortorder = req.query.sortorder;
     const page = parseInt(req.query.page)
     const limit = parseInt(req.query.limit)
-
     const sortObj = {};
     if (sortfield && (sortorder === "asc" || sortorder === "desc")) {
         sortObj[sortfield] = sortorder === "asc" ? 1 : -1;
     }
-
-
-
-
-
-
     try {
-        const result = await productSchema.find().sort(sortObj).skip((page - 1) * limit).limit(limit).populate({ path: 'seller', select: 'name email' });
+        const result = await productSchema.find().sort(sortObj).skip((page - 1) * limit).limit(limit).populate({ path: 'seller' });
         res.status(200).send(result);
     } catch (error) {
         console.error(error);
